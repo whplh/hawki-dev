@@ -1,0 +1,86 @@
+{
+  "realm": "hawki",
+  "enabled": true,
+  "displayName": "HAWKI Local IdP",
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "hawki",
+      "name": "HAWKI",
+      "description": "HAWKI web client (confidential, authorization code flow)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "hawki-local-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+      "redirectUris": [
+        "https://hawki.dev.local/req/login",
+        "http://127.88.0.2/req/login",
+        "http://localhost/req/login",
+        "http://127.0.0.1/req/login"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "post.logout.redirect.uris": "https://hawki.dev.local/login"
+      },
+      "protocolMappers": [
+        {
+          "name": "employeetype",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "employeetype",
+            "claim.name": "employeetype",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "enabled": true,
+      "email": "alice@example.test",
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Example",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alice-dev",
+          "temporary": false
+        }
+      ],
+      "attributes": {
+        "employeetype": ["staff"]
+      }
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "email": "bob@example.test",
+      "emailVerified": true,
+      "firstName": "Bob",
+      "lastName": "Builder",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "bob-dev",
+          "temporary": false
+        }
+      ],
+      "attributes": {
+        "employeetype": ["student"]
+      }
+    }
+  ]
+}

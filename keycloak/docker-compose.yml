@@ -1,0 +1,49 @@
+name: keycloak
+
+# Local Keycloak identity provider for HAWKI development.
+# Based on https://www.keycloak.org/getting-started/getting-started-docker
+#
+# - Runs Keycloak in dev mode (`start-dev`) with the embedded H2 database —
+#   no production hardening, meant for the local machine only.
+# - Publishes the console/login pages on http://127.0.0.1:8080.
+# - Joins HAWKI's external network `hawki_hawk_net` (see HAWKI's
+#   docker-compose.yml) under the alias `keycloak`, so the HAWKI app container
+#   can reach the IdP at http://keycloak:8080 — the same URL the browser uses
+#   after the one-time /etc/hosts entry from the README.
+# - Imports the `hawki` realm (client + test user) on first boot.
+
+services:
+    keycloak:
+        image: quay.io/keycloak/keycloak:26.8
+        container_name: keycloak
+        command: start-dev --import-realm
+        environment:
+            KC_BOOTSTRAP_ADMIN_USERNAME: admin
+            KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+            KC_HTTP_ENABLED: "true"
+            KC_HOSTNAME_STRICT: "false"
+        ports:
+            # Same convention as HAWKI: loopback only, not exposed to the network.
+            - "127.0.0.1:8080:8080"
+        volumes:
+            - keycloak-data:/opt/keycloak/data
+            - ./realm-hawki.json:/opt/keycloak/data/import/realm-hawki.json:ro
+        networks:
+            hawki_hawk_net:
+                aliases:
+                    - keycloak
+        healthcheck:
+            test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\\nHost: localhost:9000\\nConnection: close\\n\\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'"]
+            interval: 15s
+            timeout: 5s
+            retries: 10
+            start_period: 45s
+        restart: unless-stopped
+
+volumes:
+    keycloak-data:
+
+networks:
+    hawki_hawk_net:
+        # Pre-created by HAWKI's docker compose; attach externally.
+        external: true
